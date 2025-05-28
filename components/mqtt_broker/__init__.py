@@ -23,7 +23,7 @@ CONFIG_SCHEMA = cv.Schema({
     cv.GenerateID(): cv.declare_id(MQTTBroker),
 })
 
-
+@coroutine_with_priority(50.0)
 async def to_code(config):
 
     if CORE.using_esp_idf and CORE.data[KEY_CORE][KEY_FRAMEWORK_VERSION] >= cv.Version(
