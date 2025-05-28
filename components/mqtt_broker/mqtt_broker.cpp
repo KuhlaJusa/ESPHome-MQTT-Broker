@@ -1,6 +1,6 @@
 #include "esphome/core/log.h"
 #include "mqtt_broker.h"
-#include <mosq_broker.h>
+#include "mosq_broker.h"
 
 namespace esphome {
 namespace mqtt_broker {
