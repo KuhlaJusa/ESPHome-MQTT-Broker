@@ -34,7 +34,7 @@ async def to_code(config):
             repo="https://github.com/espressif/esp-protocols.git",
             ref="mosq-v2.0.20_2",
             path="components/mosquitto",
-            submodules=[["mosquitto","https://github.com/eclipse-mosquitto/mosquitto/tree/v2.0.20"]]
+            submodules=["components/mosquitto/mosquitto"]
         )
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
