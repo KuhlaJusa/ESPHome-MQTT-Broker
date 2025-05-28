@@ -32,7 +32,7 @@ async def to_code(config):
         add_idf_component(
             name="mosquitto",
             repo="https://github.com/espressif/esp-protocols.git",
-            # ref="mosquitto-2.0.20~2",
+            ref="mosq-2.0.20_2",
             path="components/mosquitto",
         )
     var = cg.new_Pvariable(config[CONF_ID])
