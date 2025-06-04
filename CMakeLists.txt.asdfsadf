@@ -1,0 +1,12 @@
+find_program(GRAPHVIZ dot)
+if(GRAPHVIZ)
+    add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/_graphviz
+        COMMAND ${CMAKE_COMMAND} "--graphviz=graphviz/deps.txt" .
+        COMMAND dot -Tsvg graphviz/deps.txt -o deps.svg
+        COMMAND dot -Tpng graphviz/deps.txt -o deps.png
+        COMMENT "Plotting dependencies graph to deps.svg"
+        DEPENDS <some_target>
+        WORKING_DIRECTORY "${CMAKE_BINARY_DIR}")
+    add_custom_target(graphviz ALL
+        DEPENDS ${CMAKE_BINARY_DIR}/_graphviz)
+endif()
