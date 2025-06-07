@@ -14,30 +14,34 @@ from esphome.const import (
     KEY_CORE,
     KEY_FRAMEWORK_VERSION,
     CONF_ENABLE_IPV6,
-    CONF_TRIGGER_ID
+    CONF_TRIGGER_ID,
+    CONF_ON_MESSAGE,
+    CONF_TOPIC,
+    CONF_QOS,
+    CONF_PAYLOAD,
+
 )
-# CONF_TRIGGER_ID
-CONF_ON_PUBLISH = "on_publish"
-CONF_TOPIC = "topic"
+
 MIN_IDF_VERSION = (5, 1, 0)
 
 mqtt_broker_ns = cg.esphome_ns.namespace("mqtt_broker")
 MQTTBroker = mqtt_broker_ns.class_("MQTTBroker", cg.Component)
 
 
-OnPublishTrigger = mqtt_broker_ns.class_(
-    "OnPublishTrigger", automation.Trigger.template(cg.std_string), cg.Component
+MQTTMessageTrigger = mqtt_broker_ns.class_(
+    "MQTTMessageTrigger", automation.Trigger.template(cg.std_string), cg.Component
 )
 
 CONFIG_SCHEMA = cv.All(
     cv.Schema({
         cv.GenerateID(): cv.declare_id(MQTTBroker),
-        cv.Optional(CONF_ON_PUBLISH): automation.validate_automation(
+        cv.Optional(CONF_ON_MESSAGE): automation.validate_automation(
                 {
-                    cv.GenerateID(CONF_TRIGGER_ID): cv.declare_id(OnPublishTrigger),
-                    cv.Optional(CONF_TOPIC): cv.templatable(cv.string_strict),
+                    cv.GenerateID(CONF_TRIGGER_ID): cv.declare_id(MQTTMessageTrigger),
+                    cv.Required(CONF_TOPIC): cv.subscribe_topic,
+                    cv.Optional(CONF_QOS, default=0): cv.mqtt_qos,
+                    cv.Optional(CONF_PAYLOAD): cv.string_strict,
                 },
-                cv.has_at_least_one_key(CONF_TOPIC),
             ),
     }),
     cv.only_with_esp_idf,
@@ -75,13 +79,14 @@ async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
 
     # initialize topic trigger
-    for conf in config.get(CONF_ON_PUBLISH, []):
-        trigger = cg.new_Pvariable(conf[CONF_TRIGGER_ID], var)
-        await cg.register_component(trigger, conf)
-        # if (above := conf.get(CONF_TOPIC)) is not None:
-        #     template_ = await cg.templatable(above, [(str, "x")], str)
-        #     cg.add(trigger.set_min(template_))
-        await automation.build_automation(trigger, [(cg.std_string, "x")], conf)
+    for conf in config.get(CONF_ON_MESSAGE, []):
+        trig = cg.new_Pvariable(conf[CONF_TRIGGER_ID], var)
+        cg.add(trig.set_qos(conf[CONF_QOS]))
+        cg.add(trig.set_topic(conf[CONF_TOPIC]))
+        if CONF_PAYLOAD in conf:
+            cg.add(trig.set_payload(conf[CONF_PAYLOAD]))
+        await cg.register_component(trig, conf)
+        await automation.build_automation(trig, [(cg.std_string, "x")], conf)
 
 
     await cg.register_component(var, config)
