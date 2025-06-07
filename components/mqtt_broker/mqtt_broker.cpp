@@ -17,6 +17,12 @@ MQTTBroker *MQTTBroker::global_instance_ = nullptr;
 void MQTTBroker::handle_message(char *client, char *topic, char *payload, int len, int qos, int retain){
   if (!global_instance_ || !global_instance_->message_queue_) return;
 
+  //if debug set, skip automation
+  if (global_instance_->debug_) {
+    ESP_LOGD(TAG, "Message from \"%s\" on topic \"%s\": %.*s", client, topic, len, payload);
+    return;
+  }
+
   //Check if an Automation want this topic
   std::string topic_str(topic);
   bool any_match = false;
@@ -28,6 +34,7 @@ void MQTTBroker::handle_message(char *client, char *topic, char *payload, int le
     }
   }
   if (!any_match) {
+    ESP_LOGV(TAG, "No Topic Match for Message (Automation)");
     return;  // Drop message early
   }
 
@@ -43,23 +50,29 @@ void MQTTBroker::handle_message(char *client, char *topic, char *payload, int le
   if (result != pdPASS) {
       // Queue full or send failed, clean up
       delete msg;
-      ESP_LOGW(TAG, "Failed to enqueue MQTT message;");
+      ESP_LOGW(TAG, "Failed to enqueue MQTT Message (Automation)");
   }
 }
 
 void MQTTBroker::start_broker(void* pvParameter) {
+  if (!global_instance_ || !global_instance_->message_queue_){
+    ESP_LOGE(TAG, "MQTT_Broker instance not unknown");
+    return;
+  } 
+
   int broker_return = 0;
 
   char ip[] = "0.0.0.0"; // Listen on all interfaces
   struct mosq_broker_config config = {
       .host = ip,         
-      .port = 1883,       // Standard MQTT port
-      .tls_cfg = NULL,    // No TLS in this example
-      .handle_message_cb = handle_message
+      .port = global_instance_->port_,
+      .tls_cfg = NULL,    // No TLS
+      .handle_message_cb = global_instance_->enable_callback_ ? handle_message : nullptr
       };
 
-  mosq_broker_run(&config);
-  ESP_LOGD(TAG, "MQTT Broker exit");
+  ESP_LOGI(TAG, "Starting MQTT Broker on port: %d", config.port);
+  broker_return = mosq_broker_run(&config);     //broker only returns from this function if stopped
+  ESP_LOGI(TAG, "MQTT Broker closed with code: %d", broker_return);
 }
 
 void MQTTBroker::setup() {
@@ -72,11 +85,11 @@ void MQTTBroker::setup() {
 #if defined(USE_ESP32_VARIANT_ESP32S2) || defined(USE_ESP32_VARIANT_ESP32C3) || \
     defined(USE_ESP32_VARIANT_ESP32C6) || defined(USE_ESP32_VARIANT_ESP32H2)
   //single core esp, tested on esp32c6
-  xTaskCreate(&MQTTBroker::start_broker, "MQTTTask", 4000, this, 0, &mqtt_task_handle);
+  xTaskCreate(&MQTTBroker::start_broker, "MQTT_Task", 4000, this, 0, &mqtt_task_handle_);
 
 #else 
   //if esp32 or esp32s3 run mqtt on second core (not tested!!!!!!!)
-  xTaskCreatePinnedToCore(&MQTTBroker::start_broker, "MQTTTask", 4000, nullptr, 1, &mqtt_task_handle, 1);
+  xTaskCreatePinnedToCore(&MQTTBroker::start_broker, "MQTT_Task", 4000, nullptr, 1, &mqtt_task_handle_, 1);
 #endif
 
 }
@@ -94,10 +107,10 @@ void MQTTBroker::loop() {
       continue;  // Defensive check
     }
 
-    if (millis() - msg->timestamp <= MAX_MESSAGE_AGE_MS) {
+    if (millis() - msg->timestamp <= max_message_age_ms_) {
       callback_.call(msg->client, msg->topic, msg->payload, msg->qos);
     }
-    delete msg;  // Free heap
+    delete msg;  // Free heap, as msg not needed anymore
   }
 
   // if (now - last_stack_print_time > 5000) {
@@ -142,7 +155,12 @@ void MQTTMessageTrigger::setup() {
 void MQTTMessageTrigger::dump_config() {
   ESP_LOGCONFIG(TAG, "MQTT Message Trigger:");
   ESP_LOGCONFIG(TAG, "  Topic: '%s'", this->topic_.c_str());
-  ESP_LOGCONFIG(TAG, "  QoS: %u", this->qos_);
+  // ESP_LOGCONFIG(TAG, "  QoS: %u", this->qos_);
+  if (this->payload_.has_value()) {
+    ESP_LOGCONFIG(TAG, "  Payload: '%s'", this->payload_->c_str());
+  } else {
+    ESP_LOGCONFIG(TAG, "  Payload: <any>");
+  }
 }
 
 float MQTTMessageTrigger::get_setup_priority() const { return setup_priority::AFTER_CONNECTION - 1; }

@@ -30,20 +30,28 @@ class MQTTBroker : public Component {
   void dump_config() override;
   float get_setup_priority() const override;
 
-  void add_on_publish_callback(std::function<void(std::string, std::string, std::string, uint8_t)> &&callback){
-    this->callback_.add(std::move(callback));
-  }
-
   void add_trigger(MQTTMessageTrigger* trigger);
-
   static void handle_message(char *client, char *topic, char *payload, int len, int qos, int retain);
   static void start_broker(void* pvParameter);
 
+  void add_on_publish_callback(std::function<void(std::string, std::string, std::string, uint8_t)> &&callback){
+    this->callback_.add(std::move(callback));
+  }
+  void set_port(uint16_t port) { this->port_ = port; }
+  // uint16_t get_port() {return this->port_;}
+  void set_max_message_age(uint16_t milliseconds) { this->max_message_age_ms_ = milliseconds; }
+  // uint32_t set_max_message_age() { return this->max_message_age_ms_; }
+  void set_debug(bool debug) { this->debug_ = debug;}
+  void enable_mqtt_callback(bool enable) { this->enable_callback_ = enable;}
+
  protected:
+  uint16_t port_ = 1883;
   static MQTTBroker *global_instance_;
-  TaskHandle_t mqtt_task_handle = nullptr;
+  TaskHandle_t mqtt_task_handle_ = nullptr;
   QueueHandle_t message_queue_ = nullptr;
-  static constexpr uint32_t MAX_MESSAGE_AGE_MS = 1000;
+  uint32_t max_message_age_ms_  = 1000;
+  bool debug_ = false;
+  bool enable_callback_ = false;
   std::vector<MQTTMessageTrigger*> triggers_;
   CallbackManager<void(std::string, std::string, std::string, uint8_t)> callback_;
 };
