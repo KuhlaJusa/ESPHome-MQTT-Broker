@@ -68,7 +68,17 @@ void MQTTBroker::setup() {
   // recommended stack size of minimum ~5kB 
   // we take 8 to be safe
   message_queue_ = xQueueCreate(10, sizeof(MQTTMessage*));
+
+#if defined(USE_ESP32_VARIANT_ESP32S2) || defined(USE_ESP32_VARIANT_ESP32C3) || \
+    defined(USE_ESP32_VARIANT_ESP32C6) || defined(USE_ESP32_VARIANT_ESP32H2)
+  //single core esp, tested on esp32c6
   xTaskCreate(&MQTTBroker::start_broker, "MQTTTask", 4000, this, 0, &mqtt_task_handle);
+
+#else 
+  //if esp32 or esp32s3 run mqtt on second core (not tested!!!!!!!)
+  xTaskCreatePinnedToCore(&MQTTBroker::start_broker, "MQTTTask", 4000, nullptr, 1, &mqtt_task_handle, 1);
+#endif
+
 }
 
 void MQTTBroker::loop() {
