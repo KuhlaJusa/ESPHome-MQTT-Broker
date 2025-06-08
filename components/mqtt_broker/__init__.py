@@ -39,7 +39,7 @@ CONFIG_SCHEMA = cv.All(
         cv.Optional(CONF_ON_MAX_MESSAGES_IN_QUEUE, default=10): cv.int_range(0, 65535),
         cv.Optional(CONF_ON_MESSAGE_MAX_AGE, default="1000ms"): cv.Any(
             cv.positive_time_period_milliseconds,
-            "never",
+            "infinite",
         ),
         cv.Optional(CONF_ON_MESSAGE): automation.validate_automation(
             {
@@ -88,7 +88,7 @@ async def to_code(config):
     cg.add(var.set_port(config[CONF_PORT]))
     cg.add(var.set_max_queue_elements(config[CONF_ON_MAX_MESSAGES_IN_QUEUE]))
     interval = config[CONF_ON_MESSAGE_MAX_AGE]
-    if interval == "never":
+    if interval == "infinite":
         interval = 2**32 - 1
     cg.add(var.set_max_message_age(interval))
 
