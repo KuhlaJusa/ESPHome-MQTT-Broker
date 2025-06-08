@@ -12,7 +12,7 @@ from esphome.const import (
     CONF_TRIGGER_ID,
     CONF_ON_MESSAGE,
     CONF_TOPIC,
-    CONF_QOS,
+    # CONF_QOS,
     CONF_PAYLOAD,
     CONF_PORT,
     CONF_DEBUG
@@ -21,6 +21,7 @@ from esphome.const import (
 
 MIN_IDF_VERSION = (5, 1, 0)
 CONF_ON_MESSAGE_MAX_AGE = "on_message_max_age"
+CONF_ON_MAX_MESSAGES_IN_QUEUE = "max_queue_elements"
 
 mqtt_broker_ns = cg.esphome_ns.namespace("mqtt_broker")
 MQTTBroker = mqtt_broker_ns.class_("MQTTBroker", cg.Component)
@@ -35,6 +36,7 @@ CONFIG_SCHEMA = cv.All(
         cv.GenerateID(): cv.declare_id(MQTTBroker),
         cv.Optional(CONF_PORT, default=1883): cv.port,
         cv.Optional(CONF_DEBUG, default=False): cv.boolean,
+        cv.Optional(CONF_ON_MAX_MESSAGES_IN_QUEUE, default=10): cv.int_range(0, 65535),
         cv.Optional(CONF_ON_MESSAGE_MAX_AGE, default="1000ms"): cv.Any(
             cv.positive_time_period_milliseconds,
             "never",
@@ -43,7 +45,7 @@ CONFIG_SCHEMA = cv.All(
             {
                 cv.GenerateID(CONF_TRIGGER_ID): cv.declare_id(MQTTMessageTrigger),
                 cv.Required(CONF_TOPIC): cv.subscribe_topic,
-                cv.Optional(CONF_QOS, default=0): cv.mqtt_qos,
+                # cv.Optional(CONF_QOS, default=0): cv.mqtt_qos,
                 cv.Optional(CONF_PAYLOAD): cv.string_strict,
             },
         ),
@@ -84,6 +86,7 @@ async def to_code(config):
     await cg.register_component(var, config)
 
     cg.add(var.set_port(config[CONF_PORT]))
+    cg.add(var.set_max_queue_elements(config[CONF_ON_MAX_MESSAGES_IN_QUEUE]))
     interval = config[CONF_ON_MESSAGE_MAX_AGE]
     if interval == "never":
         interval = 2**32 - 1
@@ -96,7 +99,7 @@ async def to_code(config):
     # initialize topic trigger
     for conf in config.get(CONF_ON_MESSAGE, []):
         trig = cg.new_Pvariable(conf[CONF_TRIGGER_ID], var)
-        cg.add(trig.set_qos(conf[CONF_QOS]))
+        # cg.add(trig.set_qos(conf[CONF_QOS]))
         cg.add(trig.set_topic(conf[CONF_TOPIC]))
         if CONF_PAYLOAD in conf:
             cg.add(trig.set_payload(conf[CONF_PAYLOAD]))
