@@ -8,13 +8,13 @@ Running a lightweight MQTT broker directly on an ESP device is ideal for small, 
 
 -  **Minimal hardware** is available, yet you still want MQTT-based communication.
 
-This component acts as a bridge between ESPHome and [Espressif's port of the Mosquitto MQTT broker](https://github.com/espressif/esp-protocols/tree/master/components/mosquitto). It integrates Espressif’s broker implementation directly into devices running ESPHome, making it easy to use MQTT locally without needing an external server. The component can handle basic MQTT communication and supports ESPHome-style automations, allowing triggers based on received MQTT topics.  
+This component acts as a bridge between ESPHome and [Espressif's port of the Mosquitto MQTT broker](https://github.com/espressif/esp-protocols/tree/master/components/mosquitto). It integrates the broker implementation directly into devices running ESPHome, making it easy to use MQTT locally without needing an external server. The component can handle basic MQTT communication and supports ESPHome-style automations, allowing triggers based on received MQTT topics.  
 
-> ⚠️ **This component is only available when using the ESP-IDF framework because the used broker implementation was designed for ESP-IDF.**
+> ⚠️ **This component is only available when using the ESP-IDF framework because the broker implementation used was designed for ESP-IDF.**
 
 ## Installation
 
-To use this external component add the following code to the YAML configuration.
+To use this external component, add the following code to the YAML configuration.
 
 ```yaml
 external_components:
@@ -27,16 +27,16 @@ external_components:
 # Example minimal configuration entry
 mqtt_broker:
 
-# ipv6 is a requirement, therefore we need to add the network component.
+# IPv6 is required, so the network component must be added.
 network:
     enable_ipv6: true
 ```
 
-The broker implementation requires ipv6 even if not in use. Therefore we need to enable the support for it.
+The broker implementation requires IPv6, even if it is not in use. Therefore we need to enable the support for it.
 
 ### Variables:
 
-- **port** (Optional, int): Set the port number of the mqtt broker. Defaults to `1883`.  
+- **port** (Optional, int): Set the port number of the MQTT broker. Defaults to `1883`.  
 
 - **on_message_max_age** (Optional, Time (ms) or *'infinite'*): Only used, when *on_message Trigger* are given. For technical details take a look at [Technical Details](#technical-details). Defaults to `1000ms`
 
