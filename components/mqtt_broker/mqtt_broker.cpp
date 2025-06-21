@@ -19,7 +19,7 @@ void MQTTBroker::handle_message(char *client, char *topic, char *payload, int le
 
   //if debug set, skip automation
   if (global_instance_->debug_) {
-    ESP_LOGD(TAG, "Message from \"%s\" on topic \"%s\": %.*s", client, topic, len, payload);
+    ESP_LOGD(TAG, "Message from \"%s\" on topic \"%s\" (%d bytes): %.*s", client, topic, len, len, payload);
     return;
   }
 
