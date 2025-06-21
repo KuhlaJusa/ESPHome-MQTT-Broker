@@ -55,7 +55,7 @@ void MQTTBroker::handle_message(char *client, char *topic, char *payload, int le
 }
 
 void MQTTBroker::start_broker(void* pvParameter) {
-  if (!global_instance_ || !global_instance_->message_queue_){
+  if (!global_instance_){
     ESP_LOGE(TAG, "MQTT_Broker instance unknown, can not start broker.");
     return;
   } 
