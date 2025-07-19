@@ -2,7 +2,7 @@
 #include "esphome/core/hal.h"
 
 #include "mqtt_broker.h"
-#include "mosq_broker_wrapper.h"
+#include "mosq_broker.h"
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>

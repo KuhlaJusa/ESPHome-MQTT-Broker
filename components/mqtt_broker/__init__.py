@@ -19,7 +19,9 @@ from esphome.const import (
 
 )
 
-MIN_IDF_VERSION = (5, 1, 0)
+MIN_IDF_VERSION = (5, 1, 0) # Mosquitto port require ESP-IDF 5.1.0 or later
+MIN_ESPHOME_VERSION = (2025, 7, 0)  # with 2025.7.0 'add_idf_component' automatically includes submodules,
+                                    # manually adding is going to break in 2026.1
 CONF_ON_MESSAGE_MAX_AGE = "on_message_max_age"
 CONF_ON_MAX_MESSAGES_IN_QUEUE = "max_queue_elements"
 
@@ -52,6 +54,7 @@ CONFIG_SCHEMA = cv.All(
     }),
     cv.only_with_esp_idf,
     cv.require_framework_version(esp_idf=cv.Version(*MIN_IDF_VERSION)),
+    cv.require_esphome_version(*MIN_ESPHOME_VERSION),
     cv.requires_component("network"),
 )
 
@@ -75,9 +78,9 @@ async def to_code(config):
         add_idf_component(
             name="mosquitto",
             repo="https://github.com/espressif/esp-protocols.git",
-            ref="mosq-v2.0.20_2",
-            path="components/mosquitto",
-            submodules=["components/mosquitto/mosquitto"]
+            ref="mosq-v2.0.20_3",
+            path="components/mosquitto"
+            #submodules=["components/mosquitto/mosquitto"]
         )
     #add esp idf default parameter, otherwise if eg. in combination with webserver socket connection limits.
     add_idf_sdkconfig_option("CONFIG_LWIP_MAX_ACTIVE_TCP", 16)
