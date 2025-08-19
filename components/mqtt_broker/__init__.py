@@ -25,11 +25,11 @@ MIN_ESPHOME_VERSION = (2025, 7, 0)  # with 2025.7.0 'add_idf_component' automati
 CONF_ON_MESSAGE_MAX_AGE = "on_message_max_age"
 CONF_ON_MAX_MESSAGES_IN_QUEUE = "max_queue_elements"
 
-mqtt_broker_ns = cg.esphome_ns.namespace("mqtt_broker")
-MQTTBroker = mqtt_broker_ns.class_("MQTTBroker", cg.Component)
+mini_broker_ns = cg.esphome_ns.namespace("mqtt_broker")
+MQTTBroker = mini_broker_ns.class_("MQTTBroker", cg.Component)
 
 
-MQTTMessageTrigger = mqtt_broker_ns.class_(
+MQTTMessageTrigger = mini_broker_ns.class_(
     "MQTTMessageTrigger", automation.Trigger.template(cg.std_string), cg.Component
 )
 
@@ -72,16 +72,16 @@ def has_network_ipv6():
 @coroutine_with_priority(40.0)
 async def to_code(config):
     has_network_ipv6()
-    if CORE.using_esp_idf and CORE.data[KEY_CORE][KEY_FRAMEWORK_VERSION] >= cv.Version(
-        *MIN_IDF_VERSION
-    ):
-        add_idf_component(
-            name="mosquitto",
-            repo="https://github.com/espressif/esp-protocols.git",
-            ref="mosq-v2.0.20_3",
-            path="components/mosquitto"
-            #submodules=["components/mosquitto/mosquitto"]
-        )
+    # if CORE.using_esp_idf and CORE.data[KEY_CORE][KEY_FRAMEWORK_VERSION] >= cv.Version(
+    #     *MIN_IDF_VERSION
+    # ):
+        # add_idf_component(
+        #     name="mosquitto",
+        #     repo="https://github.com/espressif/esp-protocols.git",
+        #     ref="mosq-v2.0.20_3",
+        #     path="components/mosquitto"
+        #     #submodules=["components/mosquitto/mosquitto"]
+        # )
     #add esp idf default parameter, otherwise if eg. in combination with webserver socket connection limits.
     add_idf_sdkconfig_option("CONFIG_LWIP_MAX_ACTIVE_TCP", 16)
 

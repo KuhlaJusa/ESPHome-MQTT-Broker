@@ -6,7 +6,8 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include "esphome/core/log.h"
-
+// #include "minibroker.h"
+#include "minibroker.h"
 
 
 namespace esphome {
@@ -35,7 +36,8 @@ class MQTTBroker : public Component {
 
   // Static handler function called when a message is received by the broker.
   static void handle_message(char *client, char *topic, char *payload, int len, int qos, int retain);
-
+  static void mqtt_callback(const uint8_t* topic_ptr, size_t topic_len,
+                      const uint8_t* payload_ptr, size_t payload_len);
   // Static entry point function to start the MQTT broker as a FreeRTOS task.
   static void start_broker(void* pvParameter);
 
@@ -53,13 +55,13 @@ class MQTTBroker : public Component {
 
   // enable disable broker callback on received message.
   void enable_mqtt_callback(bool enable) { this->enable_callback_ = enable;}
-
   // Sets the maximum number of messages the internal queue can hold.
   void set_max_queue_elements(uint16_t elements) { this->max_queue_elements_ = elements;}
 
  protected:
 
   // Port on which the MQTT broker will listen (default 1883).
+  mini_broker::MiniBroker broker_;
   uint16_t port_ = 1883;
 
   // Singleton global instance pointer (used by static methods like handle_message).
