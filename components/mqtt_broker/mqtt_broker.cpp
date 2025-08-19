@@ -21,7 +21,7 @@ void MQTTBroker::mqtt_callback(const uint8_t* topic_ptr, size_t topic_len,
 
     if (!global_instance_ || !global_instance_->message_queue_) return;
 
-    ESP_LOGI(TAG, "Received topic: %.*s, payload: %.*s",
+    ESP_LOGV(TAG, "Received topic: %.*s, payload: %.*s",
              (int)topic_len, topic_ptr, (int)payload_len, payload_ptr);
 
     bool any_match = false;
