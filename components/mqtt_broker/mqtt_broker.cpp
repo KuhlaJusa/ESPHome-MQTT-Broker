@@ -87,11 +87,11 @@ mentions a minimum stack size of 5kB. To be on the safe side, we use 8kB (4000 *
 */
 #if defined(USE_ESP32_VARIANT_ESP32S3) || defined(USE_ESP32_VARIANT_ESP32)
   //if esp32 or esp32s3 run mqtt on second core (not tested!!!!!!!)
-  xTaskCreatePinnedToCore(&MQTTBroker::start_broker, "MQTT_Task", 4000, nullptr, 1, &mqtt_task_handle_, 1);
+  xTaskCreatePinnedToCore(&MQTTBroker::start_broker, "MQTT_Task", 8000, nullptr, 1, &mqtt_task_handle_, 1);
 
 #else 
   //single core esp, tested on esp32c6
-  xTaskCreate(&MQTTBroker::start_broker, "MQTT_Task", 4000, this, 0, &mqtt_task_handle_);
+  xTaskCreate(&MQTTBroker::start_broker, "MQTT_Task", 8000, this, 0, &mqtt_task_handle_);
 #endif
 
 }
