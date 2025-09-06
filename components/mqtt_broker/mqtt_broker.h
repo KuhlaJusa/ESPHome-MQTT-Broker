@@ -7,7 +7,7 @@
 #include <freertos/task.h>
 #include "esphome/core/log.h"
 // #include "minibroker.h"
-#include "minibroker.h"
+#include "AsyncBroker.h"
 
 
 namespace esphome {
@@ -61,7 +61,7 @@ class MQTTBroker : public Component {
  protected:
 
   // Port on which the MQTT broker will listen (default 1883).
-  mini_broker::MiniBroker broker_;
+  asyncbroker::AsyncBroker broker_;
   uint16_t port_ = 1883;
 
   // Singleton global instance pointer (used by static methods like handle_message).

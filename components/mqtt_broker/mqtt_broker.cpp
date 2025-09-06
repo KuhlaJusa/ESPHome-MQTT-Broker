@@ -7,7 +7,7 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
-#include "minibroker.h"
+#include "AsyncBroker.h"
 
 namespace esphome {
 namespace mqtt_broker {
@@ -21,7 +21,7 @@ void MQTTBroker::mqtt_callback(const uint8_t* topic_ptr, size_t topic_len,
 
     if (!global_instance_ || !global_instance_->message_queue_) return;
 
-    ESP_LOGV(TAG, "Received topic: %.*s, payload: %.*s",
+    ESP_LOGD(TAG, "Received topic: %.*s, payload: %.*s",
              (int)topic_len, topic_ptr, (int)payload_len, payload_ptr);
 
     bool any_match = false;
@@ -68,11 +68,11 @@ void MQTTBroker::setup() {
     message_queue_ = xQueueCreate(10, sizeof(MQTTMessage*));
 
   ESP_LOGI(TAG, "Starting MQTT broker on port %d", port_);
-  broker_.begin();
+  broker_.start();
 }
 
 void MQTTBroker::loop() {
-  broker_.loop_iteration();
+  // broker_.loop_iteration();
   if (enable_callback_){
     MQTTMessage* msg = nullptr;
 

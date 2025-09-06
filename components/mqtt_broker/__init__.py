@@ -19,9 +19,8 @@ from esphome.const import (
 
 )
 
-MIN_IDF_VERSION = (5, 1, 0) # Mosquitto port require ESP-IDF 5.1.0 or later
-MIN_ESPHOME_VERSION = (2025, 7, 0)  # with 2025.7.0 'add_idf_component' automatically includes submodules,
-                                    # manually adding is going to break in 2026.1
+DEPENDENCIES = ["network"]
+
 CONF_ON_MESSAGE_MAX_AGE = "on_message_max_age"
 CONF_ON_MAX_MESSAGES_IN_QUEUE = "max_queue_elements"
 
@@ -51,39 +50,15 @@ CONFIG_SCHEMA = cv.All(
                 cv.Optional(CONF_PAYLOAD): cv.string_strict,
             },
         ),
-    }),
-    cv.only_with_esp_idf,
-    cv.require_framework_version(esp_idf=cv.Version(*MIN_IDF_VERSION)),
-    cv.require_esphome_version(*MIN_ESPHOME_VERSION),
-    cv.requires_component("network"),
+    })
 )
 
-def has_network_ipv6():
-    core_config = CORE.config
-    if (network_config := core_config.get("network", None)) is not None:
-        if (enable_ipv6 := network_config.get(CONF_ENABLE_IPV6, None)) is not None:
-            if enable_ipv6:
-                return 
-        raise cv.Invalid("Required 'enable_ipv6: true', in the Network component: https://esphome.io/components/network.html")
-    else:
-        raise cv.Invalid("Required the Network component: https://esphome.io/components/network.html")
 
 
 @coroutine_with_priority(40.0)
 async def to_code(config):
-    has_network_ipv6()
-    # if CORE.using_esp_idf and CORE.data[KEY_CORE][KEY_FRAMEWORK_VERSION] >= cv.Version(
-    #     *MIN_IDF_VERSION
-    # ):
-        # add_idf_component(
-        #     name="mosquitto",
-        #     repo="https://github.com/espressif/esp-protocols.git",
-        #     ref="mosq-v2.0.20_3",
-        #     path="components/mosquitto"
-        #     #submodules=["components/mosquitto/mosquitto"]
-        # )
-    #add esp idf default parameter, otherwise if eg. in combination with webserver socket connection limits.
-    add_idf_sdkconfig_option("CONFIG_LWIP_MAX_ACTIVE_TCP", 16)
+
+    # add_idf_sdkconfig_option("CONFIG_LWIP_MAX_ACTIVE_TCP", 16)
 
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
